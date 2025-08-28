@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reviews</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="page-review">
+  <div class="topnav">
+    <a class="brand active" href="index.html"><span class="dot"></span>Movies site</a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="btn ghost" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+    </div>
+  </div>
+
+  <div class="container section">
+    <h1>Reviews for</h1>
+    <h3 id="title">Movie Title</h3>
+  </div>
+
+  <section id="section"></section>
+
+  <!-- Review utilities: theme, toast, icon swap, avatar & spacing -->
+  <script>
+  (function(){
+    // Set page title from URL
+    try{
+      const u = new URL(location.href);
+      const t = u.searchParams.get('title');
+      if (t) document.title = 'Reviews — ' + t;
+    }catch(e){}
+
+    // Theme toggle
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const key = 'theme-pref';
+    function applyTheme(t){
+      if(!t){ root.removeAttribute('data-theme'); return; }
+      root.setAttribute('data-theme', t);
+      if(btn){
+        btn.innerHTML = t === 'light' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+      }
+    }
+    const saved = localStorage.getItem(key);
+    applyTheme(saved);
+    btn && btn.addEventListener('click', ()=>{
+      const next = (root.getAttribute('data-theme') === 'light') ? 'dark' : 'light';
+      localStorage.setItem(key, next);
+      applyTheme(next);
+    });
+
+    // Toasts
+    const holder = document.createElement('div');
+    holder.id = 'toast-holder';
+    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(holder));
+    window.toast = function(msg, type='success'){
+      const t = document.createElement('div');
+      t.className = 'toast ' + type + ' show';
+      t.textContent = msg;
+      holder.appendChild(t);
+      setTimeout(() => { t.classList.remove('show'); t.remove(); }, 2200);
+    };
+
+    // Replace emoji action buttons with icons; add aria; add avatars
+    function decorate(root){
+      // Icon replacement
+      const map = [
+        { test: /✏️|\u270F|\uFE0F/, cls: 'edit', icon: '<i class="fa-solid fa-pen"></i>' },
+        { test: /🗑️|\u1F5D1|\uFE0F/, cls: 'delete', icon: '<i class="fa-solid fa-trash"></i>' },
+        { test: /➕|\u2795/, cls: 'add', icon: '<i class="fa-solid fa-plus"></i>' }
+      ];
+      root.querySelectorAll('button').forEach(btn => {
+        const txt = (btn.textContent || '').trim();
+        for (const m of map) {
+          if (m.test.test(txt)) {
+            btn.classList.add('icon-btn', m.cls);
+            btn.innerHTML = m.icon;
+            break;
+          }
+        }
+      });
+      root.querySelectorAll('button.icon-btn.edit').forEach(b=>{ b.setAttribute('aria-label','Edit review'); b.title='Edit'; });
+      root.querySelectorAll('button.icon-btn.delete').forEach(b=>{ b.setAttribute('aria-label','Delete review'); b.title='Delete'; });
+      root.querySelectorAll('button.icon-btn.add').forEach(b=>{ b.setAttribute('aria-label','Add review'); b.title='Add'; });
+
+      // Avatars: if a review card has "User: <name>", prepend an avatar with initial
+      root.querySelectorAll('.card').forEach(card => {
+        const p = Array.from(card.querySelectorAll('p')).find(el => /^\s*User\s*:/i.test(el.textContent || ''));
+        if (p && !card.querySelector('.avatar')){
+          const name = (p.textContent.split(':')[1] || 'User').trim();
+          const initial = (name[0] || 'U').toUpperCase();
+          const av = document.createElement('div');
+          av.className = 'avatar'; av.textContent = initial;
+          card.insertBefore(av, card.firstChild);
+        }
+        // Ensure padding class
+        card.classList.add('review-card');
+      });
+    }
+    decorate(document);
+    const target = document.getElementById('section') || document.body;
+    new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => {
+      if (n.nodeType === 1) decorate(n);
+    })) ).observe(target, { childList: true, subtree: true });
+
+    // Toast on review fetch actions
+    const _fetch = window.fetch;
+    window.fetch = async function(){
+      const args = arguments;
+      const res = await _fetch.apply(this, args);
+      try{
+        const url = String(args[0]);
+        const opt = args[1] || {};
+        const method = (opt.method || 'GET').toUpperCase();
+        if (url.includes('/api/v1/reviews')){
+          if (method === 'POST') toast('Review added', 'success');
+          else if (method === 'DELETE') toast('Review deleted', 'success');
+          else if (method === 'PUT' || method === 'PATCH') toast('Review updated', 'success');
+        }
+      }catch(e){}
+      return res;
+    };
+  })();
+  </script>
+
+  <script src="movie.js"></script>
+</body>
+</html>

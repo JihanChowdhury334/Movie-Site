@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Movies Site</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#131720">
+</head>
+<body>
+  <div class="topnav">
+    <a class="brand active" href="index.html"><span class="dot"></span>Movies site</a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="btn ghost" aria-label="Toggle theme">🌙</button>
+      <button id="watchlist-nav" class="btn" aria-label="Open watchlist">Watchlist (<span id="watch-count">0</span>)</button>
+    </div>
+    <div class="search-container">
+      <form role="search" id="form">
+        <input type="search" id="query" name="q" placeholder="Search..." />
+      </form>
+    </div>
+  </div>
+
+  <!-- Safe control bar: Sort dropdown -->
+  <div class="controls">
+    <label class="control">
+      <span>Sort by</span>
+      <select id="sort-by">
+        <option value="popularity.desc">Popularity</option>
+        <option value="vote_average.desc">Rating</option>
+        <option value="release_date.desc">Release date</option>
+      </select>
+    </label>
+  </div>
+
+  <section id="section" aria-live="polite"></section>
+
+  <!-- Trailer Modal (overlay) -->
+  <div id="trailer-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Trailer player">
+    <div class="modal-backdrop"></div>
+    <div class="modal-body">
+      <button class="modal-close" aria-label="Close trailer">✕</button>
+      <div class="modal-content">
+        <div class="video-16x9">
+          <iframe id="trailer-frame" src="" title="YouTube trailer" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // Theme toggle (same as before)
+  (function(){
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const key = 'theme-pref';
+    function apply(t){
+      if(!t){ root.removeAttribute('data-theme'); return; }
+      root.setAttribute('data-theme', t);
+      if(btn) btn.textContent = t === 'light' ? '🌙' : '☀️';
+    }
+    apply(localStorage.getItem(key));
+    btn && btn.addEventListener('click', ()=>{
+      const next = (root.getAttribute('data-theme') === 'light') ? 'dark' : 'light';
+      localStorage.setItem(key, next);
+      apply(next);
+    });
+  })();
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>
