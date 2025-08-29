@@ -3,8 +3,9 @@
 
     const movieTitle = url.searchParams.get("title");
 
-    const APILINK =
-      "https://7ca0b3f2-65de-47e9-8fc8-f35a1d4081d0-00-2x8adbb8537q0.worf.replit.dev/api/v1/reviews/";
+const APILINK =
+  "https://movie-site-api-fud8erh0dcfxg2fm.westus3-01.azurewebsites.net/api/v1/reviews/";
+
 
     const main = document.getElementById("section");
     const title = document.getElementById("title");
